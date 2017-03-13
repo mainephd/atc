@@ -26,6 +26,17 @@ type Client interface {
 		map[string]string,
 	) (Container, error)
 
+	FindBuildContainer(
+		lager.Logger,
+		<-chan os.Signal,
+		ImageFetchingDelegate,
+		Identifier,
+		Metadata,
+		ContainerSpec,
+		atc.VersionedResourceTypes,
+		map[string]string,
+	) (Container, error)
+
 	CreateResourceGetContainer(
 		logger lager.Logger,
 		resourceUser dbng.ResourceUser,

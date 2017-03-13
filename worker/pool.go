@@ -152,20 +152,20 @@ func (pool *pool) FindOrCreateBuildContainer(
 	resourceTypes atc.VersionedResourceTypes,
 	outputPaths map[string]string,
 ) (Container, error) {
-	container, found, err := pool.FindContainerForIdentifier(logger, id)
-	if err != nil {
-		return nil, err
-	}
-	if found {
-		return container, nil
-	}
+	return nil, errors.New("not implemented")
+}
 
-	worker, err := pool.Satisfying(spec.WorkerSpec(), resourceTypes)
-	if err != nil {
-		return nil, err
-	}
-
-	return worker.FindOrCreateBuildContainer(logger, signals, delegate, id, metadata, spec, resourceTypes, outputPaths)
+func (pool *pool) FindBuildContainer(
+	logger lager.Logger,
+	signals <-chan os.Signal,
+	delegate ImageFetchingDelegate,
+	id Identifier,
+	metadata Metadata,
+	spec ContainerSpec,
+	resourceTypes atc.VersionedResourceTypes,
+	outputPaths map[string]string,
+) (Container, error) {
+	return nil, errors.New("not implemented")
 }
 
 func (pool *pool) CreateResourceGetContainer(
