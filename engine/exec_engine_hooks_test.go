@@ -5,6 +5,7 @@ import (
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/dbfakes"
+	"github.com/concourse/atc/dbng"
 	"github.com/concourse/atc/engine"
 	"github.com/concourse/atc/engine/enginefakes"
 	"github.com/concourse/atc/exec"
@@ -189,7 +190,7 @@ var _ = Describe("Exec Engine With Hooks", func() {
 					Expect(logger).NotTo(BeNil())
 					Expect(metadata).To(Equal(expectedMetadata))
 					Expect(sourceName).To(Equal(worker.ArtifactName("some-input")))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						PipelineID: 57,
 						StepName:   "some-input",
 						Type:       db.ContainerTypeGet,
@@ -209,7 +210,7 @@ var _ = Describe("Exec Engine With Hooks", func() {
 					logger, sourceName, workerID, workerMetadata, delegate, _, _, _, _, _, _, _, _, _ := fakeFactory.TaskArgsForCall(2)
 					Expect(logger).NotTo(BeNil())
 					Expect(sourceName).To(Equal(worker.ArtifactName("some-completion-task")))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						PipelineID: 57,
 						StepName:   "some-completion-task",
 						Type:       db.ContainerTypeTask,
@@ -230,7 +231,7 @@ var _ = Describe("Exec Engine With Hooks", func() {
 					logger, sourceName, workerID, workerMetadata, delegate, _, _, _, _, _, _, _, _, _ := fakeFactory.TaskArgsForCall(0)
 					Expect(logger).NotTo(BeNil())
 					Expect(sourceName).To(Equal(worker.ArtifactName("some-failure-task")))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						PipelineID: 57,
 						StepName:   "some-failure-task",
 						Type:       db.ContainerTypeTask,
@@ -251,7 +252,7 @@ var _ = Describe("Exec Engine With Hooks", func() {
 					logger, sourceName, workerID, workerMetadata, delegate, _, _, _, _, _, _, _, _, _ := fakeFactory.TaskArgsForCall(1)
 					Expect(logger).NotTo(BeNil())
 					Expect(sourceName).To(Equal(worker.ArtifactName("some-success-task")))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						PipelineID: 57,
 						StepName:   "some-success-task",
 						Type:       db.ContainerTypeTask,
@@ -272,7 +273,7 @@ var _ = Describe("Exec Engine With Hooks", func() {
 					logger, sourceName, workerID, workerMetadata, delegate, _, _, _, _, _, _, _, _, _ := fakeFactory.TaskArgsForCall(3)
 					Expect(logger).NotTo(BeNil())
 					Expect(sourceName).To(Equal(worker.ArtifactName("some-next-task")))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						PipelineID: 57,
 						StepName:   "some-next-task",
 						Type:       db.ContainerTypeTask,

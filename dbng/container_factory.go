@@ -18,13 +18,13 @@ func NewContainerFactory(conn Conn) ContainerFactory {
 	}
 }
 
-type ContainerMetadata struct {
-	Type string
-	Name string
-}
-
 func (factory *containerFactory) FindContainersForDeletion() ([]CreatingContainer, []CreatedContainer, []DestroyingContainer, error) {
-	query, args, err := psql.Select("c.id, c.handle, c.worker_name, c.hijacked, c.discontinued, c.state").
+	columns := []string{"c.id", "c.handle", "c.worker_name", "c.hijacked", "c.discontinued", "c.state"}
+	for _, col := range containerMetadataColumns {
+		columns = append(columns, "c."+col)
+	}
+
+	query, args, err := psql.Select(columns...).
 		From("containers c").
 		LeftJoin("builds b ON b.id = c.build_id").
 		LeftJoin("volumes v ON v.worker_resource_cache_id = c.worker_resource_cache_id").
@@ -88,8 +88,14 @@ func scanContainer(row sq.RowScanner, conn Conn) (CreatingContainer, CreatedCont
 		isDiscontinued bool
 		isHijacked     bool
 		state          string
+
+		metadata ContainerMetadata
 	)
-	err := row.Scan(&id, &handle, &workerName, &isHijacked, &isDiscontinued, &state)
+
+	columns := []interface{}{&id, &handle, &workerName, &isHijacked, &isDiscontinued, &state}
+	columns = append(columns, metadata.ScanTargets()...)
+
+	err := row.Scan(columns...)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -100,14 +106,16 @@ func scanContainer(row sq.RowScanner, conn Conn) (CreatingContainer, CreatedCont
 			id:         id,
 			handle:     handle,
 			workerName: workerName,
+			metadata:   metadata,
 			conn:       conn,
 		}, nil, nil, nil
 	case ContainerStateCreated:
 		return nil, &createdContainer{
 			id:         id,
 			handle:     handle,
-			workerName: workerName,
 			hijacked:   isHijacked,
+			workerName: workerName,
+			metadata:   metadata,
 			conn:       conn,
 		}, nil, nil
 	case ContainerStateDestroying:
@@ -115,6 +123,7 @@ func scanContainer(row sq.RowScanner, conn Conn) (CreatingContainer, CreatedCont
 			id:             id,
 			handle:         handle,
 			workerName:     workerName,
+			metadata:       metadata,
 			isDiscontinued: isDiscontinued,
 			conn:           conn,
 		}, nil

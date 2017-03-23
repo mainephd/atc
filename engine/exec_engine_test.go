@@ -201,7 +201,7 @@ var _ = Describe("ExecEngine", func() {
 					logger, metadata, workerID, workerMetadata, delegate, resourceConfig, tags, actualTeamID, params, _ := fakeFactory.PutArgsForCall(0)
 					Expect(logger).NotTo(BeNil())
 					Expect(metadata).To(Equal(expectedMetadata))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						ResourceName: "",
 						Type:         db.ContainerTypePut,
 						StepName:     "some-put",
@@ -224,7 +224,7 @@ var _ = Describe("ExecEngine", func() {
 					logger, metadata, workerID, workerMetadata, delegate, resourceConfig, tags, actualTeamID, params, _ = fakeFactory.PutArgsForCall(1)
 					Expect(logger).NotTo(BeNil())
 					Expect(metadata).To(Equal(expectedMetadata))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						ResourceName: "",
 						Type:         db.ContainerTypePut,
 						StepName:     "some-put-2",
@@ -256,7 +256,7 @@ var _ = Describe("ExecEngine", func() {
 					logger, metadata, sourceName, workerID, workerMetadata, delegate, resourceConfig, tags, actualTeamID, params, _ := fakeFactory.DependentGetArgsForCall(0)
 					Expect(logger).NotTo(BeNil())
 					Expect(metadata).To(Equal(expectedMetadata))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						ResourceName: "",
 						Type:         db.ContainerTypeGet,
 						StepName:     "some-get",
@@ -284,7 +284,7 @@ var _ = Describe("ExecEngine", func() {
 					logger, metadata, sourceName, workerID, workerMetadata, delegate, resourceConfig, tags, actualTeamID, params, _ = fakeFactory.DependentGetArgsForCall(1)
 					Expect(logger).NotTo(BeNil())
 					Expect(metadata).To(Equal(expectedMetadata))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						ResourceName: "",
 						Type:         db.ContainerTypeGet,
 						StepName:     "some-get-2",
@@ -376,7 +376,7 @@ var _ = Describe("ExecEngine", func() {
 				logger, metadata, sourceName, workerID, workerMetadata, delegate, resourceConfig, tags, actualTeamID, params, _, _ := fakeFactory.GetArgsForCall(0)
 				Expect(logger).NotTo(BeNil())
 				Expect(metadata).To(Equal(expectedMetadata))
-				Expect(workerMetadata).To(Equal(worker.Metadata{
+				Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 					ResourceName: "",
 					Type:         db.ContainerTypeGet,
 					StepName:     "some-get",
@@ -404,7 +404,7 @@ var _ = Describe("ExecEngine", func() {
 				logger, metadata, sourceName, workerID, workerMetadata, delegate, resourceConfig, tags, actualTeamID, params, _, _ := fakeFactory.GetArgsForCall(1)
 				Expect(logger).NotTo(BeNil())
 				Expect(metadata).To(Equal(expectedMetadata))
-				Expect(workerMetadata).To(Equal(worker.Metadata{
+				Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 					ResourceName: "",
 					Type:         db.ContainerTypeGet,
 					StepName:     "some-get",
@@ -436,7 +436,7 @@ var _ = Describe("ExecEngine", func() {
 				logger, sourceName, workerID, workerMetadata, delegate, privileged, tags, actualTeamID, configSource, _, _, _, _, _ := fakeFactory.TaskArgsForCall(0)
 				Expect(logger).NotTo(BeNil())
 				Expect(sourceName).To(Equal(worker.ArtifactName("some-task")))
-				Expect(workerMetadata).To(Equal(worker.Metadata{
+				Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 					ResourceName: "",
 					Type:         db.ContainerTypeTask,
 					StepName:     "some-task",
@@ -458,7 +458,7 @@ var _ = Describe("ExecEngine", func() {
 				logger, sourceName, workerID, workerMetadata, delegate, privileged, tags, actualTeamID, configSource, _, _, _, _, _ = fakeFactory.TaskArgsForCall(1)
 				Expect(logger).NotTo(BeNil())
 				Expect(sourceName).To(Equal(worker.ArtifactName("some-task")))
-				Expect(workerMetadata).To(Equal(worker.Metadata{
+				Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 					ResourceName: "",
 					Type:         db.ContainerTypeTask,
 					StepName:     "some-task",
@@ -563,7 +563,7 @@ var _ = Describe("ExecEngine", func() {
 					logger, metadata, sourceName, workerID, workerMetadata, delegate, resourceConfig, tags, actualTeamID, params, version, _ := fakeFactory.GetArgsForCall(0)
 					Expect(logger).NotTo(BeNil())
 					Expect(metadata).To(Equal(expectedMetadata))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						ResourceName: "",
 						Type:         db.ContainerTypeGet,
 						StepName:     "some-input",
@@ -631,7 +631,7 @@ var _ = Describe("ExecEngine", func() {
 						logger, sourceName, workerID, workerMetadata, delegate, privileged, tags, actualTeamID, configSource, _, actualInputMapping, actualOutputMapping, _, _ := fakeFactory.TaskArgsForCall(0)
 						Expect(logger).NotTo(BeNil())
 						Expect(sourceName).To(Equal(worker.ArtifactName("some-task")))
-						Expect(workerMetadata).To(Equal(worker.Metadata{
+						Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 							ResourceName: "",
 							Type:         db.ContainerTypeTask,
 							StepName:     "some-task",
@@ -769,7 +769,7 @@ var _ = Describe("ExecEngine", func() {
 					logger, metadata, workerID, workerMetadata, delegate, resourceConfig, tags, actualTeamID, params, _ := fakeFactory.PutArgsForCall(0)
 					Expect(logger).NotTo(BeNil())
 					Expect(metadata).To(Equal(expectedMetadata))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						ResourceName: "",
 						Type:         db.ContainerTypePut,
 						StepName:     "some-put",
@@ -805,7 +805,7 @@ var _ = Describe("ExecEngine", func() {
 					logger, metadata, sourceName, workerID, workerMetadata, delegate, resourceConfig, tags, actualTeamID, params, _ := fakeFactory.DependentGetArgsForCall(0)
 					Expect(logger).NotTo(BeNil())
 					Expect(metadata).To(Equal(expectedMetadata))
-					Expect(workerMetadata).To(Equal(worker.Metadata{
+					Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 						ResourceName: "",
 						Type:         db.ContainerTypeGet,
 						StepName:     "some-get",
@@ -951,7 +951,7 @@ var _ = Describe("ExecEngine", func() {
 					TeamName:     "some-team",
 					ExternalURL:  "http://example.com",
 				}))
-				Expect(workerMetadata).To(Equal(worker.Metadata{
+				Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 					ResourceName: "",
 					Type:         db.ContainerTypeGet,
 					StepName:     "some-get",

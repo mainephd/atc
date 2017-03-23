@@ -192,7 +192,7 @@ var _ = Describe("Team", func() {
 			build, err := defaultPipeline.CreateJobBuild("some-job")
 			Expect(err).NotTo(HaveOccurred())
 
-			creatingContainer, err := defaultTeam.CreateBuildContainer(defaultWorker.Name(), build.ID(), atc.PlanID("some-job"), dbng.ContainerMetadata{Type: "task", Name: "some-task"})
+			creatingContainer, err := defaultTeam.CreateBuildContainer(defaultWorker.Name(), build.ID(), atc.PlanID("some-job"), dbng.ContainerMetadata{Type: "task", StepName: "some-task"})
 			Expect(err).NotTo(HaveOccurred())
 
 			createdContainer, err = creatingContainer.Created()
@@ -243,7 +243,7 @@ var _ = Describe("Team", func() {
 
 		Context("when there is a creating container", func() {
 			BeforeEach(func() {
-				_, err := defaultTeam.CreateResourceCheckContainer(defaultWorker.Name(), resourceConfig)
+				_, err := defaultTeam.CreateResourceCheckContainer(defaultWorker.Name(), resourceConfig, dbng.ContainerMetadata{Type: "check"})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -267,7 +267,7 @@ var _ = Describe("Team", func() {
 			var originalCreatedContainer dbng.CreatedContainer
 
 			BeforeEach(func() {
-				creatingContainer, err := defaultTeam.CreateResourceCheckContainer(defaultWorker.Name(), resourceConfig)
+				creatingContainer, err := defaultTeam.CreateResourceCheckContainer(defaultWorker.Name(), resourceConfig, dbng.ContainerMetadata{Type: "check"})
 				Expect(err).NotTo(HaveOccurred())
 				originalCreatedContainer, err = creatingContainer.Created()
 				Expect(err).NotTo(HaveOccurred())
@@ -332,7 +332,7 @@ var _ = Describe("Team", func() {
 
 		Context("when there is a creating container", func() {
 			BeforeEach(func() {
-				_, err := defaultTeam.CreateResourceCheckContainer(defaultWorker.Name(), resourceConfig)
+				_, err := defaultTeam.CreateResourceCheckContainer(defaultWorker.Name(), resourceConfig, dbng.ContainerMetadata{Type: "check"})
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -355,7 +355,7 @@ var _ = Describe("Team", func() {
 			var originalCreatedContainer dbng.CreatedContainer
 
 			BeforeEach(func() {
-				creatingContainer, err := defaultTeam.CreateResourceCheckContainer(defaultWorker.Name(), resourceConfig)
+				creatingContainer, err := defaultTeam.CreateResourceCheckContainer(defaultWorker.Name(), resourceConfig, dbng.ContainerMetadata{Type: "check"})
 				Expect(err).NotTo(HaveOccurred())
 				originalCreatedContainer, err = creatingContainer.Created()
 				Expect(err).NotTo(HaveOccurred())
@@ -408,8 +408,8 @@ var _ = Describe("Team", func() {
 
 		BeforeEach(func() {
 			containerMetadata = dbng.ContainerMetadata{
-				Type: "task",
-				Name: "some-task",
+				Type:     "task",
+				StepName: "some-task",
 			}
 		})
 
@@ -474,8 +474,8 @@ var _ = Describe("Team", func() {
 
 		BeforeEach(func() {
 			containerMetadata = dbng.ContainerMetadata{
-				Type: "task",
-				Name: "some-task",
+				Type:     "task",
+				StepName: "some-task",
 			}
 		})
 

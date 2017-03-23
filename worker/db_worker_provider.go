@@ -3,7 +3,6 @@ package worker
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"code.cloudfoundry.org/clock"
 	gclient "code.cloudfoundry.org/garden/client"
@@ -22,8 +21,6 @@ import (
 //go:generate counterfeiter . WorkerDB
 
 type WorkerDB interface {
-	PutTheRestOfThisCrapInTheDatabaseButPleaseRemoveMeLater(container db.Container, maxLifetime time.Duration) error
-	GetContainer(string) (db.SavedContainer, bool, error)
 	GetPipelineByID(pipelineID int) (db.SavedPipeline, error)
 	AcquireVolumeCreatingLock(lager.Logger, int) (lock.Lock, bool, error)
 	AcquireContainerCreatingLock(lager.Logger, int) (lock.Lock, bool, error)
@@ -159,10 +156,6 @@ func (provider *dbWorkerProvider) FindWorkerForResourceCheckContainer(
 	}
 
 	return provider.newGardenWorker(clock.NewClock(), dbWorker), true, nil
-}
-
-func (provider *dbWorkerProvider) GetContainer(handle string) (db.SavedContainer, bool, error) {
-	return provider.db.GetContainer(handle)
 }
 
 func (provider *dbWorkerProvider) newGardenWorker(tikTok clock.Clock, savedWorker dbng.Worker) Worker {

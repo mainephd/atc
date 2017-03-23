@@ -134,11 +134,12 @@ type FakeTeam struct {
 		result2 dbng.CreatedContainer
 		result3 error
 	}
-	CreateResourceCheckContainerStub        func(workerName string, resourceConfig *dbng.UsedResourceConfig) (dbng.CreatingContainer, error)
+	CreateResourceCheckContainerStub        func(workerName string, resourceConfig *dbng.UsedResourceConfig, meta dbng.ContainerMetadata) (dbng.CreatingContainer, error)
 	createResourceCheckContainerMutex       sync.RWMutex
 	createResourceCheckContainerArgsForCall []struct {
 		workerName     string
 		resourceConfig *dbng.UsedResourceConfig
+		meta           dbng.ContainerMetadata
 	}
 	createResourceCheckContainerReturns struct {
 		result1 dbng.CreatingContainer
@@ -148,12 +149,12 @@ type FakeTeam struct {
 		result1 dbng.CreatingContainer
 		result2 error
 	}
-	CreateResourceGetContainerStub        func(workerName string, resourceConfig *dbng.UsedResourceCache, stepName string) (dbng.CreatingContainer, error)
+	CreateResourceGetContainerStub        func(workerName string, resourceConfig *dbng.UsedResourceCache, meta dbng.ContainerMetadata) (dbng.CreatingContainer, error)
 	createResourceGetContainerMutex       sync.RWMutex
 	createResourceGetContainerArgsForCall []struct {
 		workerName     string
 		resourceConfig *dbng.UsedResourceCache
-		stepName       string
+		meta           dbng.ContainerMetadata
 	}
 	createResourceGetContainerReturns struct {
 		result1 dbng.CreatingContainer
@@ -668,17 +669,18 @@ func (fake *FakeTeam) FindResourceCheckContainerOnWorkerReturnsOnCall(i int, res
 	}{result1, result2, result3}
 }
 
-func (fake *FakeTeam) CreateResourceCheckContainer(workerName string, resourceConfig *dbng.UsedResourceConfig) (dbng.CreatingContainer, error) {
+func (fake *FakeTeam) CreateResourceCheckContainer(workerName string, resourceConfig *dbng.UsedResourceConfig, meta dbng.ContainerMetadata) (dbng.CreatingContainer, error) {
 	fake.createResourceCheckContainerMutex.Lock()
 	ret, specificReturn := fake.createResourceCheckContainerReturnsOnCall[len(fake.createResourceCheckContainerArgsForCall)]
 	fake.createResourceCheckContainerArgsForCall = append(fake.createResourceCheckContainerArgsForCall, struct {
 		workerName     string
 		resourceConfig *dbng.UsedResourceConfig
-	}{workerName, resourceConfig})
-	fake.recordInvocation("CreateResourceCheckContainer", []interface{}{workerName, resourceConfig})
+		meta           dbng.ContainerMetadata
+	}{workerName, resourceConfig, meta})
+	fake.recordInvocation("CreateResourceCheckContainer", []interface{}{workerName, resourceConfig, meta})
 	fake.createResourceCheckContainerMutex.Unlock()
 	if fake.CreateResourceCheckContainerStub != nil {
-		return fake.CreateResourceCheckContainerStub(workerName, resourceConfig)
+		return fake.CreateResourceCheckContainerStub(workerName, resourceConfig, meta)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -692,10 +694,10 @@ func (fake *FakeTeam) CreateResourceCheckContainerCallCount() int {
 	return len(fake.createResourceCheckContainerArgsForCall)
 }
 
-func (fake *FakeTeam) CreateResourceCheckContainerArgsForCall(i int) (string, *dbng.UsedResourceConfig) {
+func (fake *FakeTeam) CreateResourceCheckContainerArgsForCall(i int) (string, *dbng.UsedResourceConfig, dbng.ContainerMetadata) {
 	fake.createResourceCheckContainerMutex.RLock()
 	defer fake.createResourceCheckContainerMutex.RUnlock()
-	return fake.createResourceCheckContainerArgsForCall[i].workerName, fake.createResourceCheckContainerArgsForCall[i].resourceConfig
+	return fake.createResourceCheckContainerArgsForCall[i].workerName, fake.createResourceCheckContainerArgsForCall[i].resourceConfig, fake.createResourceCheckContainerArgsForCall[i].meta
 }
 
 func (fake *FakeTeam) CreateResourceCheckContainerReturns(result1 dbng.CreatingContainer, result2 error) {
@@ -720,18 +722,18 @@ func (fake *FakeTeam) CreateResourceCheckContainerReturnsOnCall(i int, result1 d
 	}{result1, result2}
 }
 
-func (fake *FakeTeam) CreateResourceGetContainer(workerName string, resourceConfig *dbng.UsedResourceCache, stepName string) (dbng.CreatingContainer, error) {
+func (fake *FakeTeam) CreateResourceGetContainer(workerName string, resourceConfig *dbng.UsedResourceCache, meta dbng.ContainerMetadata) (dbng.CreatingContainer, error) {
 	fake.createResourceGetContainerMutex.Lock()
 	ret, specificReturn := fake.createResourceGetContainerReturnsOnCall[len(fake.createResourceGetContainerArgsForCall)]
 	fake.createResourceGetContainerArgsForCall = append(fake.createResourceGetContainerArgsForCall, struct {
 		workerName     string
 		resourceConfig *dbng.UsedResourceCache
-		stepName       string
-	}{workerName, resourceConfig, stepName})
-	fake.recordInvocation("CreateResourceGetContainer", []interface{}{workerName, resourceConfig, stepName})
+		meta           dbng.ContainerMetadata
+	}{workerName, resourceConfig, meta})
+	fake.recordInvocation("CreateResourceGetContainer", []interface{}{workerName, resourceConfig, meta})
 	fake.createResourceGetContainerMutex.Unlock()
 	if fake.CreateResourceGetContainerStub != nil {
-		return fake.CreateResourceGetContainerStub(workerName, resourceConfig, stepName)
+		return fake.CreateResourceGetContainerStub(workerName, resourceConfig, meta)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -745,10 +747,10 @@ func (fake *FakeTeam) CreateResourceGetContainerCallCount() int {
 	return len(fake.createResourceGetContainerArgsForCall)
 }
 
-func (fake *FakeTeam) CreateResourceGetContainerArgsForCall(i int) (string, *dbng.UsedResourceCache, string) {
+func (fake *FakeTeam) CreateResourceGetContainerArgsForCall(i int) (string, *dbng.UsedResourceCache, dbng.ContainerMetadata) {
 	fake.createResourceGetContainerMutex.RLock()
 	defer fake.createResourceGetContainerMutex.RUnlock()
-	return fake.createResourceGetContainerArgsForCall[i].workerName, fake.createResourceGetContainerArgsForCall[i].resourceConfig, fake.createResourceGetContainerArgsForCall[i].stepName
+	return fake.createResourceGetContainerArgsForCall[i].workerName, fake.createResourceGetContainerArgsForCall[i].resourceConfig, fake.createResourceGetContainerArgsForCall[i].meta
 }
 
 func (fake *FakeTeam) CreateResourceGetContainerReturns(result1 dbng.CreatingContainer, result2 error) {

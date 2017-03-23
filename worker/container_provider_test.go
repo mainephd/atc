@@ -61,8 +61,7 @@ var _ = Describe("ContainerProvider", func() {
 		cancel            <-chan os.Signal
 		containerSpec     ContainerSpec
 		resourceUser      dbng.ResourceUser
-		containerID       Identifier
-		containerMetadata Metadata
+		containerMetadata dbng.ContainerMetadata
 		resourceTypes     atc.VersionedResourceTypes
 
 		findOrCreateErr       error
@@ -169,8 +168,9 @@ var _ = Describe("ContainerProvider", func() {
 
 		resourceUser = dbng.ForBuild{BuildID: 42}
 
-		containerID = Identifier{BuildID: 42, PlanID: "some-plan-id"}
-		containerMetadata = Metadata{Handle: "some-handle"}
+		containerMetadata = dbng.ContainerMetadata{
+			StepName: "some-step",
+		}
 
 		containerSpec = ContainerSpec{
 			TeamID: 73410,
@@ -317,7 +317,7 @@ var _ = Describe("ContainerProvider", func() {
 	ItHandlesNonExistentContainer := func(createDatabaseCallCountFunc func() int) {
 		It("gets image", func() {
 			Expect(fakeImageFactory.GetImageCallCount()).To(Equal(1))
-			_, actualWorker, actualVolumeClient, actualImageSpec, actualTeamID, actualCancel, actualDelegate, actualResourceUser, actualContainerID, actualContainerMetadata, actualResourceTypes := fakeImageFactory.GetImageArgsForCall(0)
+			_, actualWorker, actualVolumeClient, actualImageSpec, actualTeamID, actualCancel, actualDelegate, actualResourceUser, actualContainerMetadata, actualResourceTypes := fakeImageFactory.GetImageArgsForCall(0)
 			Expect(actualWorker).To(Equal(fakeWorker))
 			Expect(actualVolumeClient).To(Equal(fakeVolumeClient))
 			Expect(actualImageSpec).To(Equal(containerSpec.ImageSpec))
@@ -327,7 +327,6 @@ var _ = Describe("ContainerProvider", func() {
 			Expect(actualCancel).To(Equal(cancel))
 			Expect(actualDelegate).To(Equal(fakeImageFetchingDelegate))
 			Expect(actualResourceUser).To(Equal(resourceUser))
-			Expect(actualContainerID).To(Equal(containerID))
 			Expect(actualContainerMetadata).To(Equal(containerMetadata))
 			Expect(actualResourceTypes).To(Equal(resourceTypes))
 
@@ -486,7 +485,8 @@ var _ = Describe("ContainerProvider", func() {
 				logger,
 				cancel,
 				fakeImageFetchingDelegate,
-				containerID,
+				42,
+				atc.PlanID("some-plan-id"),
 				containerMetadata,
 				containerSpec,
 				resourceTypes,
@@ -535,7 +535,6 @@ var _ = Describe("ContainerProvider", func() {
 				resourceUser,
 				cancel,
 				fakeImageFetchingDelegate,
-				containerID,
 				containerMetadata,
 				containerSpec,
 				resourceTypes,
@@ -583,7 +582,6 @@ var _ = Describe("ContainerProvider", func() {
 				dbng.ForBuild{BuildID: 42},
 				cancel,
 				fakeImageFetchingDelegate,
-				containerID,
 				containerMetadata,
 				containerSpec,
 				resourceTypes,

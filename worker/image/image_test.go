@@ -73,7 +73,7 @@ var _ = Describe("Image", func() {
 				fakeImageFetchingDelegate,
 				dbng.ForBuild{BuildID: 42},
 				worker.Identifier{},
-				worker.Metadata{},
+				dbng.ContainerMetadata{},
 				atc.VersionedResourceTypes{},
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -144,7 +144,7 @@ var _ = Describe("Image", func() {
 				fakeImageFetchingDelegate,
 				dbng.ForBuild{BuildID: 42},
 				worker.Identifier{},
-				worker.Metadata{},
+				dbng.ContainerMetadata{},
 				atc.VersionedResourceTypes{},
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -227,7 +227,7 @@ var _ = Describe("Image", func() {
 				fakeImageFetchingDelegate,
 				dbng.ForBuild{BuildID: 42},
 				worker.Identifier{},
-				worker.Metadata{},
+				dbng.ContainerMetadata{},
 				atc.VersionedResourceTypes{},
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -296,7 +296,7 @@ var _ = Describe("Image", func() {
 				fakeImageFetchingDelegate,
 				dbng.ForBuild{BuildID: 42},
 				worker.Identifier{},
-				worker.Metadata{},
+				dbng.ContainerMetadata{},
 				atc.VersionedResourceTypes{},
 			)
 			Expect(err).NotTo(HaveOccurred())
@@ -367,7 +367,7 @@ var _ = Describe("Image", func() {
 				fakeImageFetchingDelegate,
 				dbng.ForBuild{BuildID: 42},
 				worker.Identifier{},
-				worker.Metadata{},
+				dbng.ContainerMetadata{},
 				atc.VersionedResourceTypes{},
 			)
 			Expect(err).NotTo(HaveOccurred())

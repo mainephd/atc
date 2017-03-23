@@ -7,6 +7,7 @@ import (
 
 	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/concourse/atc"
+	"github.com/concourse/atc/dbng"
 	"github.com/concourse/atc/dbng/dbngfakes"
 	. "github.com/concourse/atc/worker"
 	wfakes "github.com/concourse/atc/worker/workerfakes"
@@ -127,8 +128,9 @@ var _ = Describe("Worker", func() {
 				logger,
 				nil,
 				nil,
-				Identifier{},
-				Metadata{},
+				42,
+				atc.PlanID("some-plan-id"),
+				dbng.ContainerMetadata{},
 				ContainerSpec{
 					ImageSpec: imageSpec,
 				},

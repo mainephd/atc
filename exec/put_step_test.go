@@ -33,10 +33,7 @@ var _ = Describe("GardenFactory", func() {
 
 		stepMetadata testMetadata = []string{"a=1", "b=2"}
 
-		identifier = worker.Identifier{
-			ResourceID: 1234,
-		}
-		workerMetadata = worker.Metadata{
+		workerMetadata = dbng.ContainerMetadata{
 			PipelineName: "some-pipeline",
 			Type:         db.ContainerTypePut,
 			StepName:     "some-step",
@@ -103,13 +100,14 @@ var _ = Describe("GardenFactory", func() {
 		JustBeforeEach(func() {
 			step = factory.Put(
 				lagertest.NewTestLogger("test"),
+				teamID,
+				42,
+				atc.PlanID("some-plan-id"),
 				stepMetadata,
-				identifier,
 				workerMetadata,
 				putDelegate,
 				resourceConfig,
 				tags,
-				teamID,
 				params,
 				resourceTypes,
 			).Using(inStep, repo)
@@ -154,17 +152,15 @@ var _ = Describe("GardenFactory", func() {
 				It("initializes the resource with the correct type, session, and sources", func() {
 					Expect(fakeResourceFactory.NewPutResourceCallCount()).To(Equal(1))
 
-					_, sid, sm, containerSpec, actualResourceTypes, delegate := fakeResourceFactory.NewPutResourceArgsForCall(0)
-					Expect(sm).To(Equal(worker.Metadata{
+					_, buildID, planID, sm, containerSpec, actualResourceTypes, delegate := fakeResourceFactory.NewPutResourceArgsForCall(0)
+					Expect(sm).To(Equal(dbng.ContainerMetadata{
 						PipelineName:     "some-pipeline",
 						Type:             db.ContainerTypePut,
 						StepName:         "some-step",
 						WorkingDirectory: "/tmp/build/put",
 					}))
-					Expect(sid).To(Equal(worker.Identifier{
-						ResourceID: 1234,
-						Stage:      db.ContainerStageRun,
-					}))
+					Expect(buildID).To(Equal(42))
+					Expect(planID).To(Equal(atc.PlanID("some-plan-id")))
 					Expect(containerSpec.ImageSpec).To(Equal(worker.ImageSpec{
 						ResourceType: "some-resource-type",
 						Privileged:   true,

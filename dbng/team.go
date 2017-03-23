@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -39,9 +40,9 @@ type Team interface {
 
 	FindWorkerForResourceCheckContainer(resourceConfig *UsedResourceConfig) (Worker, bool, error)
 	FindResourceCheckContainerOnWorker(workerName string, resourceConfig *UsedResourceConfig) (CreatingContainer, CreatedContainer, error)
-	CreateResourceCheckContainer(workerName string, resourceConfig *UsedResourceConfig) (CreatingContainer, error)
+	CreateResourceCheckContainer(workerName string, resourceConfig *UsedResourceConfig, meta ContainerMetadata) (CreatingContainer, error)
 
-	CreateResourceGetContainer(workerName string, resourceConfig *UsedResourceCache, stepName string) (CreatingContainer, error)
+	CreateResourceGetContainer(workerName string, resourceConfig *UsedResourceCache, meta ContainerMetadata) (CreatingContainer, error)
 
 	FindWorkerForBuildContainer(buildID int, planID atc.PlanID) (Worker, bool, error)
 	FindBuildContainerOnWorker(workerName string, buildID int, planID atc.PlanID) (CreatingContainer, CreatedContainer, error)
@@ -93,6 +94,7 @@ func (t *team) FindResourceCheckContainerOnWorker(
 func (t *team) CreateResourceCheckContainer(
 	workerName string,
 	resourceConfig *UsedResourceConfig,
+	meta ContainerMetadata,
 ) (CreatingContainer, error) {
 	tx, err := t.conn.Begin()
 	if err != nil {
@@ -114,11 +116,10 @@ func (t *team) CreateResourceCheckContainer(
 
 	var containerID int
 	err = psql.Insert("containers").
+		SetMap(meta.SQLMap()).
 		Columns(
 			"worker_name",
 			"resource_config_id",
-			"type",
-			"step_name",
 			"handle",
 			"team_id",
 			"worker_base_resource_type_id",
@@ -126,13 +127,11 @@ func (t *team) CreateResourceCheckContainer(
 		Values(
 			workerName,
 			resourceConfig.ID,
-			"check",
-			"",
 			handle.String(),
 			t.id,
 			*wbrtID,
 		).
-		Suffix("RETURNING id").
+		Suffix("RETURNING id"). // XXX
 		RunWith(tx).
 		QueryRow().
 		Scan(&containerID)
@@ -160,7 +159,7 @@ func (t *team) CreateResourceCheckContainer(
 func (t *team) CreateResourceGetContainer(
 	workerName string,
 	resourceCache *UsedResourceCache,
-	stepName string,
+	meta ContainerMetadata,
 ) (CreatingContainer, error) {
 	var workerResourcCache *UsedWorkerResourceCache
 	err := safeFindOrCreate(t.conn, func(tx Tx) error {
@@ -182,23 +181,20 @@ func (t *team) CreateResourceGetContainer(
 
 	var containerID int
 	err = psql.Insert("containers").
+		SetMap(meta.SQLMap()).
 		Columns(
 			"worker_name",
 			"worker_resource_cache_id",
-			"type",
-			"step_name",
 			"handle",
 			"team_id",
 		).
 		Values(
 			workerName,
 			workerResourcCache.ID,
-			"get",
-			stepName,
 			handle.String(),
 			t.id,
 		).
-		Suffix("RETURNING id").
+		Suffix("RETURNING id"). // XXX
 		RunWith(t.conn).
 		QueryRow().
 		Scan(&containerID)
@@ -253,29 +249,24 @@ func (t *team) CreateBuildContainer(
 	}
 
 	var containerID int
+	cols := []interface{}{&containerID}
+
+	metadata := &ContainerMetadata{}
+	cols = append(cols, metadata.ScanTargets()...)
+
+	insMap := meta.SQLMap()
+	insMap["worker_name"] = workerName
+	insMap["build_id"] = buildID
+	insMap["plan_id"] = string(planID)
+	insMap["handle"] = handle.String()
+	insMap["team_id"] = t.id
+
 	err = psql.Insert("containers").
-		Columns(
-			"worker_name",
-			"build_id",
-			"plan_id",
-			"type",
-			"step_name",
-			"handle",
-			"team_id",
-		).
-		Values(
-			workerName,
-			buildID,
-			string(planID),
-			meta.Type,
-			meta.Name,
-			handle.String(),
-			t.id,
-		).
-		Suffix("RETURNING id").
+		SetMap(insMap).
+		Suffix("RETURNING id, " + strings.Join(containerMetadataColumns, ", ")).
 		RunWith(t.conn).
 		QueryRow().
-		Scan(&containerID)
+		Scan(cols...)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code.Name() == "foreign_key_violation" {
 			return nil, ErrBuildDisappeared
@@ -287,6 +278,7 @@ func (t *team) CreateBuildContainer(
 		id:         containerID,
 		handle:     handle.String(),
 		workerName: workerName,
+		metadata:   *metadata,
 		conn:       t.conn,
 	}, nil
 }

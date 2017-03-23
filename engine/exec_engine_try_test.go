@@ -126,7 +126,7 @@ var _ = Describe("Exec Engine with Try", func() {
 				Expect(logger).NotTo(BeNil())
 				Expect(metadata).To(Equal(expectedMetadata))
 				Expect(sourceName).To(Equal(worker.ArtifactName("some-input")))
-				Expect(workerMetadata).To(Equal(worker.Metadata{
+				Expect(workerMetadata).To(Equal(dbng.ContainerMetadata{
 					Type:       db.ContainerTypeGet,
 					StepName:   "some-input",
 					PipelineID: 42,

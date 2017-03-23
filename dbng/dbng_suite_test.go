@@ -58,6 +58,22 @@ var (
 	logger                    *lagertest.TestLogger
 	lockFactory               lock.LockFactory
 
+	fullMetadata = dbng.ContainerMetadata{
+		Type: "task",
+
+		StepName: "some-step-name",
+		Attempt:  "1,2,3",
+
+		PipelineID:     123,
+		JobID:          456,
+		BuildID:        789,
+		ResourceID:     101,
+		ResourceTypeID: 112,
+
+		WorkingDirectory: "/some/work/dir",
+		User:             "some-user",
+	}
+
 	psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 )
 
@@ -152,7 +168,7 @@ var _ = BeforeEach(func() {
 	defaultResourceConfig, err = resourceConfigFactory.FindOrCreateResourceConfig(logger, dbng.ForResource{defaultResource.ID}, "some-base-resource-type", atc.Source{}, atc.VersionedResourceTypes{})
 	Expect(err).NotTo(HaveOccurred())
 
-	defaultCreatingContainer, err = defaultTeam.CreateResourceCheckContainer(defaultWorker.Name(), defaultResourceConfig)
+	defaultCreatingContainer, err = defaultTeam.CreateResourceCheckContainer(defaultWorker.Name(), defaultResourceConfig, dbng.ContainerMetadata{Type: "check"})
 	Expect(err).NotTo(HaveOccurred())
 
 	defaultCreatedContainer, err = defaultCreatingContainer.Created()

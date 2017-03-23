@@ -42,7 +42,7 @@ var _ = Describe("Image", func() {
 	var imageResource atc.ImageResource
 	var signals chan os.Signal
 	var identifier worker.Identifier
-	var metadata worker.Metadata
+	var metadata dbng.ContainerMetadata
 	var fakeImageFetchingDelegate *wfakes.FakeImageFetchingDelegate
 	var fakeWorker *wfakes.FakeWorker
 	var customTypes atc.VersionedResourceTypes
@@ -74,7 +74,7 @@ var _ = Describe("Image", func() {
 			PlanID:  "some-plan-id",
 			BuildID: 42,
 		}
-		metadata = worker.Metadata{
+		metadata = dbng.ContainerMetadata{
 			PipelineID:           4567,
 			PipelineName:         "some-pipeline",
 			Type:                 db.ContainerTypeCheck,
@@ -216,7 +216,7 @@ var _ = Describe("Image", func() {
 									ImageResourceSource: atc.Source{"some": "source"},
 									Stage:               db.ContainerStageCheck,
 								}))
-								Expect(metadata).To(Equal(worker.Metadata{
+								Expect(metadata).To(Equal(dbng.ContainerMetadata{
 									PipelineID:           4567,
 									PipelineName:         "some-pipeline",
 									Type:                 db.ContainerTypeCheck,
@@ -258,7 +258,7 @@ var _ = Describe("Image", func() {
 									ImageResourceSource: atc.Source{"some": "source"},
 									Stage:               db.ContainerStageCheck,
 								}))
-								Expect(metadata).To(Equal(worker.Metadata{
+								Expect(metadata).To(Equal(dbng.ContainerMetadata{
 									PipelineID:           4567,
 									PipelineName:         "some-pipeline",
 									Type:                 db.ContainerTypeCheck,
@@ -312,7 +312,7 @@ var _ = Describe("Image", func() {
 								ImageResourceSource: atc.Source{"some": "source"},
 								Stage:               db.ContainerStageCheck,
 							}))
-							Expect(metadata).To(Equal(worker.Metadata{
+							Expect(metadata).To(Equal(dbng.ContainerMetadata{
 								PipelineID:           4567,
 								PipelineName:         "some-pipeline",
 								Type:                 db.ContainerTypeCheck,
@@ -365,7 +365,7 @@ var _ = Describe("Image", func() {
 									ImageResourceSource: atc.Source{"some": "source"},
 									Stage:               db.ContainerStageGet,
 								},
-								Metadata: worker.Metadata{
+								Metadata: dbng.ContainerMetadata{
 									PipelineID:           4567,
 									PipelineName:         "some-pipeline",
 									Type:                 db.ContainerTypeGet,

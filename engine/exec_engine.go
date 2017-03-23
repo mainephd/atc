@@ -10,6 +10,7 @@ import (
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc"
 	"github.com/concourse/atc/db"
+	"github.com/concourse/atc/dbng"
 	"github.com/concourse/atc/exec"
 	"github.com/concourse/atc/worker"
 	"github.com/tedsuo/ifrit"
@@ -50,9 +51,13 @@ func (engine *execEngine) Name() string {
 
 func (engine *execEngine) CreateBuild(logger lager.Logger, build db.Build, plan atc.Plan) (Build, error) {
 	return &execBuild{
-		buildID:      build.ID(),
-		teamName:     build.TeamName(),
-		teamID:       build.TeamID(),
+		buildID: build.ID(),
+
+		teamName: build.TeamName(),
+
+		pipelineID: build.PipelineID(),
+		jobID:      build.JobID(),
+
 		stepMetadata: buildMetadata(build, engine.externalURL),
 
 		factory:  engine.factory,
@@ -162,8 +167,12 @@ func buildMetadata(build db.Build, externalURL string) StepMetadata {
 type execBuild struct {
 	buildID      int
 	stepMetadata StepMetadata
-	teamName     string
-	teamID       int
+
+	teamName string
+
+	teamID     int
+	pipelineID int
+	jobID      int
 
 	factory  exec.Factory
 	delegate BuildDelegate
@@ -284,28 +293,19 @@ func (build *execBuild) buildStepFactory(logger lager.Logger, plan atc.Plan) exe
 	return exec.Identity{}
 }
 
-func (build *execBuild) stepIdentifier(
-	logger lager.Logger,
+func (build *execBuild) workerMetadata(
+	containerType dbng.ContainerType,
 	stepName string,
-	planID atc.PlanID,
-	pipelineID int,
 	attempts []int,
-	typ string,
-) (worker.Identifier, worker.Metadata) {
-	stepType, err := db.ContainerTypeFromString(typ)
-	if err != nil {
-		logger.Debug(fmt.Sprintf("Invalid step type: %s", typ))
-	}
+) dbng.ContainerMetadata {
+	return dbng.ContainerMetadata{
+		Type: containerType,
 
-	return worker.Identifier{
-			BuildID: build.buildID,
-			PlanID:  planID,
-		},
-		worker.Metadata{
-			StepName:   stepName,
-			Type:       stepType,
-			PipelineID: pipelineID,
-			TeamID:     build.teamID,
-			Attempts:   attempts,
-		}
+		PipelineID: build.pipelineID,
+		JobID:      build.jobID,
+		BuildID:    build.buildID,
+
+		StepName: stepName,
+		Attempts: attempts,
+	}
 }

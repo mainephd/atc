@@ -3,6 +3,7 @@ package dbng
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -17,11 +18,18 @@ const (
 	ContainerStateDestroying = "destroying"
 )
 
+type Container interface {
+	ID() int
+	Handle() string
+	WorkerName() string
+	Metadata() ContainerMetadata
+}
+
 //go:generate counterfeiter . CreatingContainer
 
 type CreatingContainer interface {
-	ID() int
-	Handle() string
+	Container
+
 	Created() (CreatedContainer, error)
 }
 
@@ -29,11 +37,14 @@ type creatingContainer struct {
 	id         int
 	handle     string
 	workerName string
+	metadata   ContainerMetadata
 	conn       Conn
 }
 
-func (container *creatingContainer) ID() int        { return container.id }
-func (container *creatingContainer) Handle() string { return container.handle }
+func (container *creatingContainer) ID() int                     { return container.id }
+func (container *creatingContainer) Handle() string              { return container.handle }
+func (container *creatingContainer) WorkerName() string          { return container.workerName }
+func (container *creatingContainer) Metadata() ContainerMetadata { return container.metadata }
 
 func (container *creatingContainer) Created() (CreatedContainer, error) {
 	rows, err := psql.Update("containers").
@@ -64,6 +75,7 @@ func (container *creatingContainer) Created() (CreatedContainer, error) {
 		id:         container.id,
 		handle:     container.handle,
 		workerName: container.workerName,
+		metadata:   container.metadata,
 		hijacked:   false,
 		conn:       container.conn,
 	}, nil
@@ -72,12 +84,11 @@ func (container *creatingContainer) Created() (CreatedContainer, error) {
 //go:generate counterfeiter . CreatedContainer
 
 type CreatedContainer interface {
-	ID() int
-	Handle() string
+	Container
+
 	Discontinue() (DestroyingContainer, error)
 	Destroying() (DestroyingContainer, error)
 	IsHijacked() bool
-	WorkerName() string
 	MarkAsHijacked() error
 }
 
@@ -85,14 +96,24 @@ type createdContainer struct {
 	id         int
 	handle     string
 	workerName string
-	hijacked   bool
-	conn       Conn
+	metadata   ContainerMetadata
+
+	hijacked bool
+
+	conn Conn
 }
 
-func (container *createdContainer) ID() int            { return container.id }
-func (container *createdContainer) Handle() string     { return container.handle }
-func (container *createdContainer) WorkerName() string { return container.workerName }
-func (container *createdContainer) IsHijacked() bool   { return container.hijacked }
+func (container *createdContainer) ID() int                     { return container.id }
+func (container *createdContainer) Handle() string              { return container.handle }
+func (container *createdContainer) WorkerName() string          { return container.workerName }
+func (container *createdContainer) Metadata() ContainerMetadata { return container.metadata }
+
+func (container *createdContainer) IsHijacked() bool { return container.hijacked }
+
+func (container *createdContainer) SetBestIfUsedBy(ttl time.Duration) error {
+	panic("TODO")
+	return nil
+}
 
 func (container *createdContainer) Destroying() (DestroyingContainer, error) {
 	var isDiscontinued bool
@@ -122,6 +143,7 @@ func (container *createdContainer) Destroying() (DestroyingContainer, error) {
 		id:             container.id,
 		handle:         container.handle,
 		workerName:     container.workerName,
+		metadata:       container.metadata,
 		isDiscontinued: isDiscontinued,
 		conn:           container.conn,
 	}, nil
@@ -157,6 +179,7 @@ func (container *createdContainer) Discontinue() (DestroyingContainer, error) {
 		id:             container.id,
 		handle:         container.handle,
 		workerName:     container.workerName,
+		metadata:       container.metadata,
 		isDiscontinued: true,
 		conn:           container.conn,
 	}, nil
@@ -194,22 +217,28 @@ func (container *createdContainer) MarkAsHijacked() error {
 //go:generate counterfeiter . DestroyingContainer
 
 type DestroyingContainer interface {
-	Handle() string
-	WorkerName() string
+	Container
+
 	Destroy() (bool, error)
 	IsDiscontinued() bool
 }
 
 type destroyingContainer struct {
-	id             int
-	handle         string
-	workerName     string
+	id         int
+	handle     string
+	workerName string
+	metadata   ContainerMetadata
+
 	isDiscontinued bool
-	conn           Conn
+
+	conn Conn
 }
 
-func (container *destroyingContainer) Handle() string       { return container.handle }
-func (container *destroyingContainer) WorkerName() string   { return container.workerName }
+func (container *destroyingContainer) ID() int                     { return container.id }
+func (container *destroyingContainer) Handle() string              { return container.handle }
+func (container *destroyingContainer) WorkerName() string          { return container.workerName }
+func (container *destroyingContainer) Metadata() ContainerMetadata { return container.metadata }
+
 func (container *destroyingContainer) IsDiscontinued() bool { return container.isDiscontinued }
 
 func (container *destroyingContainer) Destroy() (bool, error) {

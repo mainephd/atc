@@ -19,8 +19,9 @@ type Client interface {
 		lager.Logger,
 		<-chan os.Signal,
 		ImageFetchingDelegate,
-		Identifier,
-		Metadata,
+		int,
+		atc.PlanID,
+		dbng.ContainerMetadata,
 		ContainerSpec,
 		atc.VersionedResourceTypes,
 	) (Container, error)
@@ -30,8 +31,7 @@ type Client interface {
 		resourceUser dbng.ResourceUser,
 		cancel <-chan os.Signal,
 		delegate ImageFetchingDelegate,
-		id Identifier,
-		metadata Metadata,
+		metadata dbng.ContainerMetadata,
 		spec ContainerSpec,
 		resourceTypes atc.VersionedResourceTypes,
 		resourceType string,
@@ -45,8 +45,7 @@ type Client interface {
 		resourceUser dbng.ResourceUser,
 		cancel <-chan os.Signal,
 		delegate ImageFetchingDelegate,
-		id Identifier,
-		metadata Metadata,
+		metadata dbng.ContainerMetadata,
 		spec ContainerSpec,
 		resourceTypes atc.VersionedResourceTypes,
 		resourceType string,
@@ -162,6 +161,3 @@ type Container interface {
 
 type ResourceCacheIdentifier db.ResourceCacheIdentifier
 type VolumeProperties map[string]string
-
-type Identifier db.ContainerIdentifier
-type Metadata db.ContainerMetadata

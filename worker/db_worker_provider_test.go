@@ -10,7 +10,6 @@ import (
 	"code.cloudfoundry.org/garden/server"
 	"code.cloudfoundry.org/lager/lagertest"
 	"github.com/concourse/atc"
-	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/db/lock/lockfakes"
 	"github.com/concourse/atc/dbng"
 	"github.com/concourse/atc/dbng/dbngfakes"
@@ -77,9 +76,6 @@ var _ = Describe("DBProvider", func() {
 			http.StatusOK,
 			baggageclaim.VolumeStatsResponse{SizeInBytes: 1024},
 		))
-
-		fakeDB = new(workerfakes.FakeWorkerDB)
-		fakeDB.GetContainerReturns(db.SavedContainer{}, true, nil)
 
 		gardenAddr = fmt.Sprintf("0.0.0.0:%d", 8888+GinkgoParallelNode())
 		fakeGardenBackend = new(gfakes.FakeBackend)
@@ -211,14 +207,9 @@ var _ = Describe("DBProvider", func() {
 			})
 
 			Context("creating the connection to garden", func() {
-				var id Identifier
 				var spec ContainerSpec
 
 				JustBeforeEach(func() {
-					id = Identifier{
-						ResourceID: 1234,
-					}
-
 					spec = ContainerSpec{
 						ImageSpec: ImageSpec{
 							ResourceType: "some-resource-a",
@@ -233,7 +224,7 @@ var _ = Describe("DBProvider", func() {
 
 					By("connecting to the worker")
 					fakeDBWorkerFactory.GetWorkerReturns(fakeWorker1, true, nil)
-					container, err := workers[0].FindOrCreateBuildContainer(logger, nil, fakeImageFetchingDelegate, id, Metadata{}, spec, nil)
+					container, err := workers[0].FindOrCreateBuildContainer(logger, nil, fakeImageFetchingDelegate, 42, atc.PlanID("some-plan-id"), dbng.ContainerMetadata{}, spec, nil)
 					Expect(err).NotTo(HaveOccurred())
 
 					err = container.Destroy()
@@ -278,10 +269,6 @@ var _ = Describe("DBProvider", func() {
 				})
 
 				It("calls through to garden", func() {
-					id := Identifier{
-						ResourceID: 1234,
-					}
-
 					spec := ContainerSpec{
 						ImageSpec: ImageSpec{
 							ResourceType: "some-resource-a",
@@ -294,12 +281,8 @@ var _ = Describe("DBProvider", func() {
 					fakeGardenBackend.CreateReturns(fakeContainer, nil)
 					fakeGardenBackend.LookupReturns(fakeContainer, nil)
 
-					container, err := workers[0].FindOrCreateBuildContainer(logger, nil, fakeImageFetchingDelegate, id, Metadata{}, spec, nil)
+					container, err := workers[0].FindOrCreateBuildContainer(logger, nil, fakeImageFetchingDelegate, 42, atc.PlanID("some-plan-id"), dbng.ContainerMetadata{}, spec, nil)
 					Expect(err).NotTo(HaveOccurred())
-
-					Expect(fakeDB.PutTheRestOfThisCrapInTheDatabaseButPleaseRemoveMeLaterCallCount()).To(Equal(1))
-					createdInfo, _ := fakeDB.PutTheRestOfThisCrapInTheDatabaseButPleaseRemoveMeLaterArgsForCall(0)
-					Expect(createdInfo.WorkerName).To(Equal("some-worker"))
 
 					Expect(container.Handle()).To(Equal("created-handle"))
 

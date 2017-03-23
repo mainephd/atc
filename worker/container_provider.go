@@ -10,12 +10,11 @@ import (
 	"code.cloudfoundry.org/garden"
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/atc"
-	"github.com/concourse/atc/db"
 	"github.com/concourse/atc/dbng"
 	"github.com/concourse/baggageclaim"
 )
 
-var ErrCreatedContainerNotFound = errors.New("container-in-created-state-not-found-in-garden")
+var ErrCreatedContainerNotFound = errors.New("container in created-state-not-found-in-garden")
 
 const creatingContainerRetryDelay = 1 * time.Second
 
@@ -108,8 +107,9 @@ type ContainerProvider interface {
 		logger lager.Logger,
 		cancel <-chan os.Signal,
 		delegate ImageFetchingDelegate,
-		id Identifier,
-		metadata Metadata,
+		buildID int,
+		planID atc.PlanID,
+		metadata dbng.ContainerMetadata,
 		spec ContainerSpec,
 		resourceTypes atc.VersionedResourceTypes,
 	) (Container, error)
@@ -119,8 +119,7 @@ type ContainerProvider interface {
 		resourceUser dbng.ResourceUser,
 		cancel <-chan os.Signal,
 		delegate ImageFetchingDelegate,
-		id Identifier,
-		metadata Metadata,
+		metadata dbng.ContainerMetadata,
 		spec ContainerSpec,
 		resourceTypes atc.VersionedResourceTypes,
 		resourceType string,
@@ -132,8 +131,7 @@ type ContainerProvider interface {
 		resourceUser dbng.ResourceUser,
 		cancel <-chan os.Signal,
 		delegate ImageFetchingDelegate,
-		id Identifier,
-		metadata Metadata,
+		metadata dbng.ContainerMetadata,
 		spec ContainerSpec,
 		resourceTypes atc.VersionedResourceTypes,
 		resourceTypeName string,
@@ -168,36 +166,33 @@ func (p *containerProvider) FindOrCreateBuildContainer(
 	logger lager.Logger,
 	cancel <-chan os.Signal,
 	delegate ImageFetchingDelegate,
-	id Identifier,
-	metadata Metadata,
+	buildID int,
+	planID atc.PlanID,
+	metadata dbng.ContainerMetadata,
 	spec ContainerSpec,
 	resourceTypes atc.VersionedResourceTypes,
 ) (Container, error) {
 	return p.findOrCreateContainer(
 		logger,
-		dbng.ForBuild{BuildID: id.BuildID}, // XXX: nicer to inject this like the others
+		dbng.ForBuild{BuildID: buildID},
 		cancel,
 		delegate,
-		id,
 		metadata,
 		spec,
 		resourceTypes,
 		func() (dbng.CreatingContainer, dbng.CreatedContainer, error) {
 			return p.dbTeamFactory.GetByID(spec.TeamID).FindBuildContainerOnWorker(
 				p.worker.Name(),
-				id.BuildID,
-				id.PlanID,
+				buildID,
+				planID,
 			)
 		},
 		func() (dbng.CreatingContainer, error) {
 			return p.dbTeamFactory.GetByID(spec.TeamID).CreateBuildContainer(
 				p.worker.Name(),
-				id.BuildID,
-				id.PlanID,
-				dbng.ContainerMetadata{
-					Name: metadata.StepName,
-					Type: string(metadata.Type),
-				},
+				buildID,
+				planID,
+				metadata,
 			)
 		},
 	)
@@ -208,8 +203,7 @@ func (p *containerProvider) FindOrCreateResourceCheckContainer(
 	resourceUser dbng.ResourceUser,
 	cancel <-chan os.Signal,
 	delegate ImageFetchingDelegate,
-	id Identifier,
-	metadata Metadata,
+	metadata dbng.ContainerMetadata,
 	spec ContainerSpec,
 	resourceTypes atc.VersionedResourceTypes,
 	resourceType string,
@@ -232,7 +226,6 @@ func (p *containerProvider) FindOrCreateResourceCheckContainer(
 		resourceUser,
 		cancel,
 		delegate,
-		id,
 		metadata,
 		spec,
 		resourceTypes,
@@ -256,6 +249,7 @@ func (p *containerProvider) FindOrCreateResourceCheckContainer(
 			return p.dbTeamFactory.GetByID(spec.TeamID).CreateResourceCheckContainer(
 				p.worker.Name(),
 				resourceConfig,
+				metadata,
 			)
 		},
 	)
@@ -266,8 +260,7 @@ func (p *containerProvider) CreateResourceGetContainer(
 	resourceUser dbng.ResourceUser,
 	cancel <-chan os.Signal,
 	delegate ImageFetchingDelegate,
-	id Identifier,
-	metadata Metadata,
+	metadata dbng.ContainerMetadata,
 	spec ContainerSpec,
 	resourceTypes atc.VersionedResourceTypes,
 	resourceTypeName string,
@@ -294,7 +287,6 @@ func (p *containerProvider) CreateResourceGetContainer(
 		resourceUser,
 		cancel,
 		delegate,
-		id,
 		metadata,
 		spec,
 		resourceTypes,
@@ -305,7 +297,7 @@ func (p *containerProvider) CreateResourceGetContainer(
 			return p.dbTeamFactory.GetByID(spec.TeamID).CreateResourceGetContainer(
 				p.worker.Name(),
 				resourceCache,
-				metadata.StepName,
+				metadata,
 			)
 		},
 	)
@@ -366,8 +358,7 @@ func (p *containerProvider) findOrCreateContainer(
 	resourceUser dbng.ResourceUser,
 	cancel <-chan os.Signal,
 	delegate ImageFetchingDelegate,
-	id Identifier,
-	metadata Metadata,
+	metadata dbng.ContainerMetadata,
 	spec ContainerSpec,
 	resourceTypes atc.VersionedResourceTypes,
 	findContainerFunc func() (dbng.CreatingContainer, dbng.CreatedContainer, error),
@@ -417,7 +408,6 @@ func (p *containerProvider) findOrCreateContainer(
 			cancel,
 			delegate,
 			resourceUser,
-			id,
 			metadata,
 			resourceTypes,
 		)
@@ -447,7 +437,6 @@ func (p *containerProvider) findOrCreateContainer(
 				resourceUser,
 				cancel,
 				delegate,
-				id,
 				metadata,
 				spec,
 				resourceTypes,
@@ -467,7 +456,6 @@ func (p *containerProvider) findOrCreateContainer(
 		gardenContainer, err = p.createGardenContainer(
 			logger,
 			creatingContainer,
-			id,
 			metadata,
 			spec,
 			fetchedImage.Metadata,
@@ -478,25 +466,21 @@ func (p *containerProvider) findOrCreateContainer(
 			return nil, err
 		}
 
-		metadata.WorkerName = p.worker.Name()
-		metadata.Handle = gardenContainer.Handle()
-
 		metadata.User = fetchedImage.Metadata.User
 		if spec.User != "" {
 			metadata.User = spec.User
 		}
 
-		err = p.db.PutTheRestOfThisCrapInTheDatabaseButPleaseRemoveMeLater(
-			db.Container{
-				ContainerIdentifier: db.ContainerIdentifier(id),
-				ContainerMetadata:   db.ContainerMetadata(metadata),
-			},
-			p.maxContainerLifetime(metadata),
-		)
-		if err != nil {
-			logger.Error("failed-to-update-container-ttl", err)
-			return nil, err
-		}
+		// XXX
+		// 		err = p.db.PutTheRestOfThisCrapInTheDatabaseButPleaseRemoveMeLater(
+		// 			gardenContainer.Handle(),
+		// 			db.ContainerMetadata(metadata),
+		// 			p.maxContainerLifetime(metadata),
+		// 		)
+		// 		if err != nil {
+		// 			logger.Error("failed-to-update-container-ttl", err)
+		// 			return nil, err
+		// 		}
 	}
 
 	createdContainer, err = creatingContainer.Created()
@@ -538,8 +522,7 @@ func (p *containerProvider) constructGardenWorkerContainer(
 func (p *containerProvider) createGardenContainer(
 	logger lager.Logger,
 	creatingContainer dbng.CreatingContainer,
-	id Identifier,
-	metadata Metadata,
+	metadata dbng.ContainerMetadata,
 	spec ContainerSpec,
 	imageMetadata ImageMetadata,
 	imageURL string,
@@ -701,18 +684,18 @@ func (p *containerProvider) anyMountTo(path string, inputs []InputSource) bool {
 	return false
 }
 
-func (p *containerProvider) maxContainerLifetime(metadata Metadata) time.Duration {
-	if metadata.Type == db.ContainerTypeCheck {
-		uptime := p.worker.Uptime()
-		switch {
-		case uptime < 5*time.Minute:
-			return 5 * time.Minute
-		case uptime > 1*time.Hour:
-			return 1 * time.Hour
-		default:
-			return uptime
-		}
-	}
+// func (p *containerProvider) maxContainerLifetime(metadata Metadata) time.Duration {
+// 	if metadata.Type == db.ContainerTypeCheck {
+// 		uptime := p.worker.Uptime()
+// 		switch {
+// 		case uptime < 5*time.Minute:
+// 			return 5 * time.Minute
+// 		case uptime > 1*time.Hour:
+// 			return 1 * time.Hour
+// 		default:
+// 			return uptime
+// 		}
+// 	}
 
-	return time.Duration(0)
-}
+// 	return time.Duration(0)
+// }
