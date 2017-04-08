@@ -191,6 +191,7 @@ var _ = Describe("APIAuthWrappa", func() {
 				atc.CreateBuild:     authenticated(inputHandlers[atc.CreateBuild]),
 				atc.CreatePipe:      authenticated(inputHandlers[atc.CreatePipe]),
 				atc.GetAuthToken:    authenticatedWithGetTokenValidator(inputHandlers[atc.GetAuthToken]),
+				atc.GetAccessToken:  authenticatedWithGetTokenValidator(inputHandlers[atc.GetAccessToken]),
 				atc.GetContainer:    authenticated(inputHandlers[atc.GetContainer]),
 				atc.HijackContainer: authenticated(inputHandlers[atc.HijackContainer]),
 				atc.ListContainers:  authenticated(inputHandlers[atc.ListContainers]),
@@ -210,6 +211,7 @@ var _ = Describe("APIAuthWrappa", func() {
 
 				// authorized (requested team matches resource team)
 				atc.CheckResource:          authorized(inputHandlers[atc.CheckResource]),
+				atc.CheckResourceWebHook:   authorized(inputHandlers[atc.CheckResourceWebHook]),
 				atc.CreateJobBuild:         authorized(inputHandlers[atc.CreateJobBuild]),
 				atc.DeletePipeline:         authorized(inputHandlers[atc.DeletePipeline]),
 				atc.DisableResourceVersion: authorized(inputHandlers[atc.DisableResourceVersion]),

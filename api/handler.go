@@ -128,6 +128,7 @@ func NewHandler(
 	handlers := map[string]http.Handler{
 		atc.ListAuthMethods: http.HandlerFunc(authServer.ListAuthMethods),
 		atc.GetAuthToken:    http.HandlerFunc(authServer.GetAuthToken),
+		atc.GetAccessToken:  http.HandlerFunc(authServer.GetAccessToken),
 
 		atc.GetConfig:  http.HandlerFunc(configServer.GetConfig),
 		atc.SaveConfig: http.HandlerFunc(configServer.SaveConfig),
@@ -164,11 +165,12 @@ func NewHandler(
 		atc.GetVersionsDB:    pipelineHandlerFactory.HandlerFor(pipelineServer.GetVersionsDB),
 		atc.RenamePipeline:   pipelineHandlerFactory.HandlerFor(pipelineServer.RenamePipeline),
 
-		atc.ListResources:   pipelineHandlerFactory.HandlerFor(resourceServer.ListResources),
-		atc.GetResource:     pipelineHandlerFactory.HandlerFor(resourceServer.GetResource),
-		atc.PauseResource:   pipelineHandlerFactory.HandlerFor(resourceServer.PauseResource),
-		atc.UnpauseResource: pipelineHandlerFactory.HandlerFor(resourceServer.UnpauseResource),
-		atc.CheckResource:   pipelineHandlerFactory.HandlerFor(resourceServer.CheckResource),
+		atc.ListResources:        pipelineHandlerFactory.HandlerFor(resourceServer.ListResources),
+		atc.GetResource:          pipelineHandlerFactory.HandlerFor(resourceServer.GetResource),
+		atc.PauseResource:        pipelineHandlerFactory.HandlerFor(resourceServer.PauseResource),
+		atc.UnpauseResource:      pipelineHandlerFactory.HandlerFor(resourceServer.UnpauseResource),
+		atc.CheckResource:        pipelineHandlerFactory.HandlerFor(resourceServer.CheckResource),
+		atc.CheckResourceWebHook: pipelineHandlerFactory.HandlerFor(resourceServer.CheckResourceWebHook),
 
 		atc.ListResourceVersions:          pipelineHandlerFactory.HandlerFor(versionServer.ListResourceVersions),
 		atc.EnableResourceVersion:         pipelineHandlerFactory.HandlerFor(versionServer.EnableResourceVersion),

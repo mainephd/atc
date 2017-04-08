@@ -27,11 +27,12 @@ const (
 	JobBadge       = "JobBadge"
 	MainJobBadge   = "MainJobBadge"
 
-	ListResources   = "ListResources"
-	GetResource     = "GetResource"
-	PauseResource   = "PauseResource"
-	UnpauseResource = "UnpauseResource"
-	CheckResource   = "CheckResource"
+	ListResources        = "ListResources"
+	GetResource          = "GetResource"
+	PauseResource        = "PauseResource"
+	UnpauseResource      = "UnpauseResource"
+	CheckResource        = "CheckResource"
+	CheckResourceWebHook = "CheckResourceWebHook"
 
 	ListResourceVersions          = "ListResourceVersions"
 	EnableResourceVersion         = "EnableResourceVersion"
@@ -71,6 +72,7 @@ const (
 
 	ListAuthMethods = "ListAuthMethods"
 	GetAuthToken    = "GetAuthToken"
+	GetAccessToken  = "GetAccessToken"
 	GetUser         = "GetUser"
 
 	ListTeams   = "ListTeams"
@@ -119,6 +121,7 @@ var Routes = rata.Routes([]rata.Route{
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/pause", Method: "PUT", Name: PauseResource},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/unpause", Method: "PUT", Name: UnpauseResource},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/check", Method: "POST", Name: CheckResource},
+	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/check/webhook", Method: "POST", Name: CheckResourceWebHook},
 
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/versions", Method: "GET", Name: ListResourceVersions},
 	{Path: "/api/v1/teams/:team_name/pipelines/:pipeline_name/resources/:resource_name/versions/:resource_version_id/enable", Method: "PUT", Name: EnableResourceVersion},
@@ -147,6 +150,7 @@ var Routes = rata.Routes([]rata.Route{
 
 	{Path: "/api/v1/teams/:team_name/auth/methods", Method: "GET", Name: ListAuthMethods},
 	{Path: "/api/v1/teams/:team_name/auth/token", Method: "GET", Name: GetAuthToken},
+	{Path: "/api/v1/teams/:team_name/auth/token/access", Method: "GET", Name: GetAccessToken},
 	{Path: "/api/v1/user", Method: "GET", Name: GetUser},
 
 	{Path: "/api/v1/teams", Method: "GET", Name: ListTeams},

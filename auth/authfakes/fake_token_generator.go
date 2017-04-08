@@ -22,6 +22,18 @@ type FakeTokenGenerator struct {
 		result2 auth.TokenValue
 		result3 error
 	}
+	GenerateAccessTokenStub        func(teamName string, teamID int, isAdmin bool) (auth.TokenType, auth.TokenValue, error)
+	generateAccessTokenMutex       sync.RWMutex
+	generateAccessTokenArgsForCall []struct {
+		teamName string
+		teamID   int
+		isAdmin  bool
+	}
+	generateAccessTokenReturns struct {
+		result1 auth.TokenType
+		result2 auth.TokenValue
+		result3 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -64,11 +76,50 @@ func (fake *FakeTokenGenerator) GenerateTokenReturns(result1 auth.TokenType, res
 	}{result1, result2, result3}
 }
 
+func (fake *FakeTokenGenerator) GenerateAccessToken(teamName string, teamID int, isAdmin bool) (auth.TokenType, auth.TokenValue, error) {
+	fake.generateAccessTokenMutex.Lock()
+	fake.generateAccessTokenArgsForCall = append(fake.generateAccessTokenArgsForCall, struct {
+		teamName string
+		teamID   int
+		isAdmin  bool
+	}{teamName, teamID, isAdmin})
+	fake.recordInvocation("GenerateAccessToken", []interface{}{teamName, teamID, isAdmin})
+	fake.generateAccessTokenMutex.Unlock()
+	if fake.GenerateAccessTokenStub != nil {
+		return fake.GenerateAccessTokenStub(teamName, teamID, isAdmin)
+	} else {
+		return fake.generateAccessTokenReturns.result1, fake.generateAccessTokenReturns.result2, fake.generateAccessTokenReturns.result3
+	}
+}
+
+func (fake *FakeTokenGenerator) GenerateAccessTokenCallCount() int {
+	fake.generateAccessTokenMutex.RLock()
+	defer fake.generateAccessTokenMutex.RUnlock()
+	return len(fake.generateAccessTokenArgsForCall)
+}
+
+func (fake *FakeTokenGenerator) GenerateAccessTokenArgsForCall(i int) (string, int, bool) {
+	fake.generateAccessTokenMutex.RLock()
+	defer fake.generateAccessTokenMutex.RUnlock()
+	return fake.generateAccessTokenArgsForCall[i].teamName, fake.generateAccessTokenArgsForCall[i].teamID, fake.generateAccessTokenArgsForCall[i].isAdmin
+}
+
+func (fake *FakeTokenGenerator) GenerateAccessTokenReturns(result1 auth.TokenType, result2 auth.TokenValue, result3 error) {
+	fake.GenerateAccessTokenStub = nil
+	fake.generateAccessTokenReturns = struct {
+		result1 auth.TokenType
+		result2 auth.TokenValue
+		result3 error
+	}{result1, result2, result3}
+}
+
 func (fake *FakeTokenGenerator) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.generateTokenMutex.RLock()
 	defer fake.generateTokenMutex.RUnlock()
+	fake.generateAccessTokenMutex.RLock()
+	defer fake.generateAccessTokenMutex.RUnlock()
 	return fake.invocations
 }
 

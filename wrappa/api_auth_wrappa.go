@@ -95,7 +95,8 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 			atc.DestroyTeam,
 			atc.WritePipe,
 			atc.ListVolumes,
-			atc.GetUser:
+			atc.GetUser,
+			atc.GetAccessToken:
 			newHandler = auth.CheckAuthenticationHandler(handler, rejector)
 
 		case atc.GetLogLevel,
@@ -104,6 +105,7 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 
 		// authorized (requested team matches resource team)
 		case atc.CheckResource,
+			atc.CheckResourceWebHook,
 			atc.CreateJobBuild,
 			atc.DeletePipeline,
 			atc.DisableResourceVersion,
@@ -129,7 +131,7 @@ func (wrappa *APIAuthWrappa) Wrap(handlers rata.Handlers) rata.Handlers {
 			panic("you missed a spot")
 		}
 
-		if name == atc.GetAuthToken {
+		if name == atc.GetAuthToken || name == atc.GetAccessToken {
 			newHandler = auth.WrapHandler(newHandler, wrappa.getTokenValidator, wrappa.userContextReader)
 		} else {
 			newHandler = auth.WrapHandler(newHandler, wrappa.authValidator, wrappa.userContextReader)
